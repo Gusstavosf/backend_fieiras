@@ -1,4 +1,5 @@
 import prisma from '../config/db.js'
+import { Prisma } from '@prisma/client/edge';
 
 class EstoqueService {
     static listarEstoque = async () => {
@@ -14,6 +15,12 @@ class EstoqueService {
             },
         });
     };
+
+    static cadastrarEstoque = async (dados: Prisma.estoque_fieirasCreateInput) => {
+        return prisma.estoque_fieiras.create({
+            data: dados
+        })
+    }
 }
 
 export default EstoqueService

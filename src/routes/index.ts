@@ -4,6 +4,6 @@ import estoqueRoutes from "./estoqueRoutes.js";
 
 const router = Router();
 
-router.use("/estoque", estoqueRoutes);
+router.use("/", estoqueRoutes);
 
 export default router;
