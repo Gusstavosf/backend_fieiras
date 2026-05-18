@@ -13,12 +13,12 @@ class Errobase extends Error {
     this.detalhes = detalhes;
   }
   
-  enviarResposta(res: Response){
-    res.status(this.statusCode).send({
+  toJSON() {
+    return {
       mensagem: this.message,
       status: this.statusCode,
-      detalhes: this.detalhes 
-    })
+      detalhes: this.detalhes,
+    };
   }
 }
 

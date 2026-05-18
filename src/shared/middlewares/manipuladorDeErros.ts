@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { Prisma } from '@prisma/client';
+import { Prisma } from "@prisma/client";
 import Errobase from '../errors/ErroBase.js';
 import RequisicaoIncorreta from '../errors/RequisicaoIncorreta.js';
 import NaoEncontrado from '../errors/NaoEncontrado.js';
 
-function manipuladorDeErros (erro: Error, req: Request, res: Response, next: NextFunction){
+function manipuladorDeErros (erro: unknown, req: Request, res: Response, next: NextFunction){
 
   if (erro instanceof Prisma.PrismaClientValidationError) {
-    return new RequisicaoIncorreta().enviarResposta(res)
+    return res.status(400).json(new RequisicaoIncorreta("Erro de validação nos dados"));
   }
 
   if (erro instanceof Prisma.PrismaClientKnownRequestError) {
@@ -35,15 +35,11 @@ function manipuladorDeErros (erro: Error, req: Request, res: Response, next: Nex
         });
     }
   } 
-  if (erro instanceof RequisicaoIncorreta) {
-    return erro.enviarResposta(res);
-  }
-
-  if (erro instanceof NaoEncontrado) {
-    return erro.enviarResposta(res);
+  if (erro instanceof Errobase){
+    return res.status(erro.statusCode).json(erro);
   }
   
-  new Errobase().enviarResposta(res);
+  return res.status(500).json(new Errobase())
 }
 
 export default manipuladorDeErros;

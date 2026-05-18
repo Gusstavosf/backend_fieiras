@@ -3,40 +3,84 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // ou "mysql" dependendo do seu banco
   url      = env("DATABASE_URL")
 }
 
 model armarios {
-  id              Int               @id @default(autoincrement())
-  name            String
-  largura         Decimal?          @db.Decimal
-  espessura       Decimal?          @db.Decimal
-  created_at      DateTime?         @default(now()) @db.Timestamp(6)
-  updated_at      DateTime?         @default(now()) @db.Timestamp(6)
-  estoque_fieiras estoque_fieiras[]
+  id         Int      @id @default(autoincrement())
+  name       String
+  largura    Decimal  @db.Decimal(10,2)
+  espessura  Decimal  @db.Decimal(10,2)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  estoque_fieiras   estoque_fieiras[]
+  controle_fieiras  controle_fieiras[]
+  requisicao        requisicao[]   
 }
+
 
 model estoque_fieiras {
-  id              Int           @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   id_armario      Int
   codigo          String
-  status          status_fieira
-  espessura_atual Decimal?      @db.Decimal
-  largura_atual   Decimal?      @db.Decimal
-  utilizacao      Decimal?      @db.Decimal
-  producao        Decimal?      @db.Decimal
-  created_at      DateTime?     @default(now()) @db.Timestamp(6)
-  updated_at      DateTime?     @default(now()) @db.Timestamp(6)
-  armarios        armarios      @relation(fields: [id_armario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_armario")
+  status          Status
+  espessura_atual Decimal? @db.Decimal(10,2)
+  largura_atual   Decimal? @db.Decimal(10,2)
+  utilizacao      Int?
+  producao        Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
 
-  @@index([id_armario], map: "idx_fieira_armario")
-  @@index([codigo], map: "idx_fieira_codigo")
+  armario         armarios @relation(fields: [id_armario], references: [id])
+
+  requisicoes     requisicao_posicao[]
 }
 
-enum status_fieira {
-  morta
+
+model controle_fieiras {
+  id              Int      @id @default(autoincrement())
+  ordem           Int
+  tipo_fio        String
+  tensao          Int
+  largura         Decimal  @db.Decimal(10,2)
+  espessura       Decimal  @db.Decimal(10,2)
+  armario_id      Int
+  data_inicio_ordem DateTime
+  data_fim_ordem    DateTime
+  qtd_ordem       Decimal  @db.Decimal(10,2)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  armario armarios @relation(fields: [armario_id], references: [id])
+}
+
+enum Status {
   nova
-  polida
   requisicao
+  morta
+  polida
 }
+
+model requisicao {
+  id              Int      @id @default(autoincrement())
+  id_armario      Int
+  qtd_estoque_atual Int
+  qtd_requisicao  Int
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  armario         armarios @relation(fields: [id_armario], references: [id])
+  posicoes        requisicao_posicao[]
+}
+
+model requisicao_posicao {
+  id            Int        @id @default(autoincrement())
+  id_requisicao Int
+  id_fieira     Int
+
+  requisicao    requisicao @relation(fields: [id_requisicao], references: [id])
+  fieira        estoque_fieiras @relation(fields: [id_fieira], references: [id])
+}
+
